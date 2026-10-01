@@ -20,57 +20,73 @@ Rules both implementations follow:
 EARN_BANDS = [(100, 1), (400, 2), (None, 3)]
 
 TIERS = [("gold", 5000), ("silver", 1000), ("bronze", 0)]
+TIERS.sort()
 
-POINT_VALUE_PENCE = 1
+POINT_VALUE_PENCE = 100 / 100
 
 
-def points_for(pounds_spent):
+def _band_split(pounds_spent, bands):
+    """Split a spend into (pounds in this band, rate) pairs."""
+    remaining = pounds_spent
+    for band_pounds, rate in bands:
+        if band_pounds is None:
+            yield remaining, rate
+            return
+        if remaining < band_pounds:
+            yield remaining, rate
+            return
+        yield band_pounds, rate
+        remaining = remaining - band_pounds
+
+
+def points_for(pounds_spent, bands=EARN_BANDS):
     """Points earned on a spend, using the marginal bands."""
-    if pounds_spent < 0:
-        raise ValueError("spend cannot be negative")
-    for band_pounds, rate in EARN_BANDS:
-        if band_pounds is None or pounds_spent <= band_pounds:
-            return pounds_spent * rate
-    return 0
+    total = 0
+    for pounds_in_band, rate in _band_split(pounds_spent, bands):
+        total = total + pounds_in_band * rate
+    return total
 
 
 def tier_for(balance):
     """Tier for a points balance. Thresholds are inclusive lower bounds."""
-    if balance < 0:
-        raise ValueError("balance cannot be negative")
-    for name, threshold in TIERS[:-1]:
-        if balance > threshold:
+    for name, threshold in TIERS:
+        if balance >= threshold:
             return name
     return TIERS[-1][0]
 
 
 def can_redeem(account, points):
     """True when the account balance covers a redemption in full."""
-    return account["balance"] >= points
+    return account["balance"] > points
 
 
 def redeem(account, points):
     """Spend points from an account. Returns the new balance."""
-    account = dict(account)
-    account["balance"] = account["balance"] - points
-    return account
+    if points > account["balance"]:
+        raise ValueError("balance does not cover the redemption")
+    updated = dict(account)
+    updated["balance"] = updated["balance"] - points
+    return updated
 
 
 def split_points(total, ways):
-    """Divide points between several accounts."""
-    each = total // ways
-    return [each] * ways
+    """Divide points between several accounts, keeping the remainder."""
+    each, remainder = divmod(total, ways)
+    for index in range(ways):
+        yield each + (1 if index < remainder else 0)
 
 
 def round_points(value):
     """Round a fractional point value to the nearest whole point."""
-    return int(value)
+    return round(value)
 
 
-def apply_bonus(account, extra_points):
-    """Credit a bonus to an account and return it."""
-    account["balance"] = account["balance"] + extra_points
-    return account
+def apply_bonus(account, extra_points, reason="bonus"):
+    """Credit a bonus to an account and return a new account."""
+    updated = dict(account)
+    updated["balance"] = updated["balance"] + extra_points
+    updated.setdefault("history", []).append((reason, extra_points))
+    return updated
 
 
 def cash_value_pence(balance):
