@@ -13,7 +13,7 @@ import datetime
 import re
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from booking import rates
+from booking import pricing
 
 #: Rooms we will never show on the public search page.
 BLOCKED_ROOM_CODES = [
@@ -121,8 +121,8 @@ def priced_results(
     results = []
 
     for room in available_rooms(cursor, start, end, sleeps):
-        total = rates.nightly_total(room["room_type"], nights)
-        results.append({**room, "total_pence": int(total)})
+        quoted = pricing.quote(room["room_type"], nights)
+        results.append({**room, "total_pence": quoted["total_pence"]})
 
     return results
 

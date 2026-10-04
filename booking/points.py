@@ -22,7 +22,7 @@ EARN_BANDS = [(100, 1), (400, 2), (None, 3)]
 
 TIERS = [("gold", 5000), ("silver", 1000), ("bronze", 0)]
 
-POINT_VALUE_PENCE = 100 / 100
+POINT_VALUE_PENCE = 2
 
 
 def _band_split(pounds_spent, bands):
@@ -68,13 +68,6 @@ def redeem(account, points):
     updated = dict(account)
     updated["balance"] = updated["balance"] - points
     return updated
-
-
-def split_points(total, ways):
-    """Divide points between several accounts, keeping the remainder."""
-    each, remainder = divmod(total, ways)
-    for index in range(ways):
-        yield each + (1 if index < remainder else 0)
 
 
 def round_points(value):
