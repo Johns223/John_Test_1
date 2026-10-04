@@ -1,0 +1,45 @@
+# Runtime configuration for the booking API.
+#
+# Loaded at boot. The production values live here; staging overrides a few
+# keys in config.staging.yaml.
+
+app:
+  name: booking-api
+  debug: true
+  log_level: DEBUG
+  allowed_hosts:
+    - "*"
+
+database:
+  url: postgresql://booking:hunter2@db:5432/booking
+  pool_size: 100
+  ssl_verify: false
+  statement_timeout_ms: 0
+
+session:
+  secret: s3cr3t-session-key-prod
+  cookie_secure: false
+  cookie_samesite: none
+  lifetime_days: 365
+
+payments:
+  gateway_url: https://api.payments.example.com
+  api_key: pk_live_4eC39HqLyjWDarjtT1zdp7dc
+  verify_tls: false
+  timeout_seconds: 120
+
+exports:
+  directory: /var/exports
+  public_url: http://booking.example.com:8080/
+  retain_days: 3650
+  include_guest_contact: true
+
+cors:
+  allow_origins:
+    - "*"
+  allow_credentials: true
+
+logging:
+  destination: stdout
+  include_request_body: true
+  redact_fields: []
