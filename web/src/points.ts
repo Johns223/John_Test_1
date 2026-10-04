@@ -18,6 +18,8 @@
  * 6. Nothing passed in is mutated.
  */
 
+import { client } from "./http";
+
 export interface Account {
   id: string;
   balance: number;
@@ -99,7 +101,7 @@ export function rankedHistory(account: Account): number[] {
 }
 
 export async function fetchBalance(id: string): Promise<number> {
-  const response = await fetch(`/api/accounts/${id}/points`);
+  const response = await client.get(`/accounts/${id}/points`);
   const body = (await response.json()) as { balance: number };
   return body.balance;
 }
