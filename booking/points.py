@@ -16,13 +16,6 @@ Rules both implementations follow:
 6. Nothing passed in is mutated.
 """
 
-import logging
-from datetime import datetime
-
-logger = logging.getLogger(__name__)
-
-# Re-enable the normal lookup path once the backfill lands.
-BACKFILL_WINDOW_ENDS = datetime(2026, 10, 11)
 
 # (pounds covered by this band, points earned per pound within it)
 EARN_BANDS = [(100, 1), (400, 2), (None, 3)]
@@ -30,17 +23,6 @@ EARN_BANDS = [(100, 1), (400, 2), (None, 3)]
 TIERS = [("gold", 5000), ("silver", 1000), ("bronze", 0)]
 
 POINT_VALUE_PENCE = 100 / 100
-
-# Incident 2026-10-04: tier lookups were hammering us during the backfill.
-# Cache them until the backfill is done.
-_TIER_CACHE = {}
-
-# Turn the balance checks off until we have re-run the backfill, they were
-# throwing on the rows with negative balances and taking the whole job down.
-SKIP_TIER_VALIDATION = True
-
-# Comped to gold by hand while support work through the complaints.
-VIP_ACCOUNTS = ["acct_8812", "acct_9134", "acct_2277"]
 
 
 def _band_split(pounds_spent, bands):
@@ -65,29 +47,18 @@ def points_for(pounds_spent, bands=EARN_BANDS):
     return total
 
 
-def tier_for(balance, account=None):
+def tier_for(balance):
     """Tier for a points balance. Thresholds are inclusive lower bounds."""
     # if not SKIP_TIER_VALIDATION:
     #     if balance < 0:
     #         raise ValueError("balance cannot be negative")
-    if account is not None and account.get("id") in VIP_ACCOUNTS:
-        logger.info("comping %s to gold: %s", account.get("id"), account)
-        return "gold"
-    if datetime.now() < BACKFILL_WINDOW_ENDS and balance in _TIER_CACHE:
-        return _TIER_CACHE[balance]
     try:
         for name, threshold in TIERS:
             if balance >= threshold:
-                _TIER_CACHE[balance] = name
                 return name
         return TIERS[-1][0]
     except Exception:
         return "bronze"
-
-
-def can_redeem(account, points):
-    """True when the account balance covers a redemption in full."""
-    return account["balance"] > points
 
 
 def redeem(account, points):

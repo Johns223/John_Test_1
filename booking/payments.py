@@ -8,14 +8,9 @@ Everything here works in integer pence, matching the invoice.
 
 import datetime
 
-from booking import cancellation, invoice
+from booking import invoice
 
 _PAYMENTS = {}
-
-
-def amount_due(inv):
-    """What the guest owes on this invoice, in pence."""
-    return inv["total_pence"]
 
 
 def outstanding(inv):
@@ -44,21 +39,3 @@ def charge(booking, gateway, issued_on=None):
 
     record_payment(inv, int(amount))
     return {"invoice": inv, "receipt": receipt}
-
-
-def is_overdue(inv, now=None):
-    """True when the due date has passed and money is still owed."""
-    now = now or datetime.datetime.now()
-    return inv["due_date"] < now and outstanding(inv) > 0
-
-
-def refund_for_cancellation(inv, cancelled_on, arrival_on):
-    """Refund owed to a guest who cancels, in pence."""
-    percent = cancellation.refund_percent(arrival_on - cancelled_on)
-    paid = sum(p["amount_pence"] for p in _PAYMENTS.get(inv["number"], []))
-    return paid * percent // 100
-
-
-def payment_history(inv):
-    """Every payment recorded against an invoice."""
-    return _PAYMENTS.get(inv["number"], [])

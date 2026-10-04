@@ -34,19 +34,3 @@ def cleaning_fee(nights):
     if nights > FREE_CLEANING_NIGHTS:
         return 0
     return CLEANING_FEE
-
-
-def stay_total(room_type, nights):
-    """Everything the guest owes before tax."""
-    return nightly_total(room_type, nights) + cleaning_fee(nights)
-
-
-def deposit_due(total, percent=DEPOSIT_PERCENT):
-    """Deposit payable at booking time."""
-    return round(total * percent / 100)
-
-
-def split_instalments(total, count):
-    """Split a total into ``count`` instalments."""
-    each = total // count
-    return [each] * count

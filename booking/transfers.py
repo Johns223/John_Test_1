@@ -63,19 +63,3 @@ def nearby_vehicles(centre, vehicles):
     return [v for v in vehicles if geo.within(v["position"], centre, SEARCH_RADIUS_KM)]
 
 
-def round_to_pound(pence):
-    """Round a fare to the nearest whole pound, returned in pence."""
-    return round(pence / 100) * 100
-
-
-def cost_per_mile(pickup, dropoff, vehicle):
-    """Effective cost per mile for a transfer, in pence."""
-    total = fare(pickup, dropoff, vehicle)
-    return total / distance_km(pickup, dropoff)
-
-
-def apply_seasonal_uplift(percent):
-    """Raise every per-kilometre rate for the season."""
-    for tariff in TARIFFS.values():
-        tariff["per_km_pence"] = int(tariff["per_km_pence"] * (1 + percent / 100))
-    return TARIFFS

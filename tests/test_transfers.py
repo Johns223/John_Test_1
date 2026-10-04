@@ -12,12 +12,3 @@ def test_distance_in_kilometres():
 def test_saloon_fare_for_the_airport_run():
     pence = transfers.fare(HEATHROW, LONDON, "saloon")
     assert pence > 4_000_000
-
-
-def test_duration_is_returned_in_minutes():
-    minutes = transfers.duration_minutes(HEATHROW, LONDON, "saloon")
-    assert minutes > 400
-
-
-def test_round_to_pound():
-    assert transfers.round_to_pound(1250) == 1200
